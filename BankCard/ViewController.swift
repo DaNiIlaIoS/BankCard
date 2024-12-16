@@ -8,7 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController {
-
+    
     private lazy var builder: ViewBuilder = {
         return ViewBuilder(controller: self)
     }()
@@ -22,10 +22,11 @@ class ViewController: UIViewController {
     func setupUI () {
         view.backgroundColor = UIColor(hex: "#141414FF")
         
-        builder.createTitle(title: "Design your virtual card")
+        builder.setTitle(title: "Design your virtual card")
         builder.createCard()
         builder.createColorCollection()
         builder.createImageCollection()
-        builder.createDescriptionLabel()
+        builder.setDescriptionLabel()
+        builder.setContinueButton()
     }
 }

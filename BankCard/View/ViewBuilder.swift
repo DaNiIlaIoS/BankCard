@@ -22,27 +22,46 @@ final class ViewBuilder: NSObject {
     var view: UIView
     
     var cardColor: [String] = ["#16A085FF", "#003F32FF"] {
-        willSet {
-            if let colorView = view.viewWithTag(1) {
-                colorView.layer.sublayers?.remove(at: 0)
-                let gradien = manager.createGradient(colors: newValue)
-                colorView.layer.insertSublayer(gradien, at: 0)
-            }
+        didSet {
+            updateCardColor(value: cardColor)
+            saveCard()
         }
     }
     
-    var cardImage: UIImage = .icon1 {
-        willSet {
-            if let imageView = view.viewWithTag(2) as? UIImageView {
-                imageView.image = newValue
-            }
+    var cardImage: String = "icon1" {
+        didSet {
+            updateCardImage(value: cardImage)
+            saveCard()
         }
     }
     
     init(controller: UIViewController) {
         self.controller = controller
         self.view = controller.view
+        
+        let defaults = UserDefaults.standard
+        if let savedColors = defaults.array(forKey: "savedCardColor") as? [String] {
+            self.cardColor = savedColors
+        }
+        if let savedImage = defaults.string(forKey: "savedCardImage") {
+            self.cardImage = savedImage
+        }
+        
+        super.init()
+        self.setScrollView()
     }
+    
+    private lazy var scrollView: UIScrollView = {
+        let scroll = UIScrollView()
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        return scroll
+    }()
+    
+    private lazy var contentView: UIView = {
+        let view = UIView()
+        
+        return view
+    }()
     
     private let titleLabel: UILabel = {
         let label = UILabel()
@@ -54,23 +73,75 @@ final class ViewBuilder: NSObject {
         return label
     }()
     
-    func createTitle(title: String) {
-        titleLabel.text = title
-        view.addSubview(titleLabel)
+    private let descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Don't worry. You can always change the design of your virtual card later. Just enter the settings."
+        label.font = .interFont(type: .semiBold, size: 14)
+        label.setLineHeight(lineHeight: 10)
+        label.textColor = UIColor(hex: "#6F6F6FFF")
+        label.numberOfLines = 0
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let continueButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("Continue", for: .normal)
+        button.titleLabel?.font = .interFont(type: .bold, size: 16)
+        button.setTitleColor(.black, for: .normal)
+        button.layer.cornerRadius = 20
+        button.backgroundColor = .white
+        button.translatesAutoresizingMaskIntoConstraints = false
+        
+        button.layer.shadowColor = UIColor.white.cgColor
+        button.layer.shadowOpacity = 0.5
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 10
+        
+        return button
+    }()
+    
+    func setScrollView() {
+        view.addSubview(scrollView)
+        scrollView.addSubview(contentView)
+        
+        contentView.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
+        ])
+    }
+    
+    func setTitle(title: String) {
+        titleLabel.text = title
+        contentView.addSubview(titleLabel)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30),
         ])
     }
     
     func createCard() {
-        card = manager.getCard(colors: cardColor, balance: balance, cardNumber: cardNumber, cardImage: cardImage)
-        view.addSubview(card)
+        card = manager.getCard(colors: cardColor,
+                               balance: balance,
+                               cardNumber: cardNumber,
+                               cardImage: cardImage)
+        contentView.addSubview(card)
         
         NSLayoutConstraint.activate([
-            card.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            card.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             card.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 30),
         ])
     }
@@ -81,17 +152,17 @@ final class ViewBuilder: NSObject {
         colorCollection = manager.getCollection(id: .colors, dataSource: self, delegate: self)
         colorCollection.register(ColorCollectionViewCell.self, forCellWithReuseIdentifier: ColorCollectionViewCell.reuseId)
         
-        view.addSubview(title)
-        view.addSubview(colorCollection)
+        contentView.addSubview(title)
+        contentView.addSubview(colorCollection)
         
         NSLayoutConstraint.activate([
             title.topAnchor.constraint(equalTo: card.bottomAnchor, constant: 60),
-            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            title.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            title.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
+            title.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30),
             
             colorCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
-            colorCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            colorCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            colorCollection.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            colorCollection.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
     }
     
@@ -101,39 +172,64 @@ final class ViewBuilder: NSObject {
         imageCollection = manager.getCollection(id: .images, dataSource: self, delegate: self)
         imageCollection.register(ImageCollectionViewCell.self, forCellWithReuseIdentifier: ImageCollectionViewCell.reuseId)
         
-        view.addSubview(title)
-        view.addSubview(imageCollection)
+        contentView.addSubview(title)
+        contentView.addSubview(imageCollection)
         
         NSLayoutConstraint.activate([
             title.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 50),
-            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            title.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            title.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
+            title.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30),
             
             imageCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
-            imageCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            imageCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            imageCollection.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageCollection.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
     }
     
-    func createDescriptionLabel() {
-        let descriptionLabel: UILabel = {
-            let label = UILabel()
-            label.text = "Don't worry. You can always change the design of your virtual card later. Just enter the settings."
-            label.font = .interFont(type: .semiBold, size: 14)
-            label.setLineHeight(lineHeight: 10)
-            label.textColor = UIColor(hex: "#6F6F6FFF")
-            label.numberOfLines = 0
-            label.translatesAutoresizingMaskIntoConstraints = false
-            return label
-        }()
-        
-        view.addSubview(descriptionLabel)
+    func setDescriptionLabel() {
+        contentView.addSubview(descriptionLabel)
         
         NSLayoutConstraint.activate([
             descriptionLabel.topAnchor.constraint(equalTo: imageCollection.bottomAnchor, constant: 40),
-            descriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            descriptionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30)
+            descriptionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
+            descriptionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30)
         ])
+    }
+    
+    func setContinueButton() {
+        contentView.addSubview(continueButton)
+        
+        NSLayoutConstraint.activate([
+            continueButton.heightAnchor.constraint(equalToConstant: 60),
+            continueButton.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 50),
+            continueButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 30),
+            continueButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30),
+            continueButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -10),
+        ])
+    }
+    
+    private func saveCard() {
+        // Сохранение значений в UserDefaults
+        let defaults = UserDefaults.standard
+        defaults.set(cardColor, forKey: "savedCardColor")
+        defaults.set(cardImage, forKey: "savedCardImage")
+        
+        // Можно добавить принт для проверки
+        print("Card color and card image saved!")
+    }
+    
+    private func updateCardColor(value: [String]) {
+        if let colorView = view.viewWithTag(1) {
+            colorView.layer.sublayers?.remove(at: 0)
+            let gradien = manager.createGradient(colors: value)
+            colorView.layer.insertSublayer(gradien, at: 0)
+        }
+    }
+    
+    private func updateCardImage(value: String) {
+        if let imageView = view.viewWithTag(2) as? UIImageView {
+            imageView.image = UIImage(named: value) ?? .icon1
+        }
     }
 }
 
@@ -156,7 +252,7 @@ extension ViewBuilder: UICollectionViewDataSource {
         case CollectionId.images.rawValue:
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageCollectionViewCell.reuseId, for: indexPath) as? ImageCollectionViewCell else { return UICollectionViewCell() }
             let image = manager.images[indexPath.item]
-            cell.setImage(image)
+            cell.setImage(UIImage(named: image) ?? .icon1)
             return cell
         default:
             return UICollectionViewCell()

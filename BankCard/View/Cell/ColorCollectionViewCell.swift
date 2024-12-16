@@ -10,6 +10,12 @@ import UIKit
 final class ColorCollectionViewCell: UICollectionViewCell {
     static let reuseId = "ColorCollectionViewCell"
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        layer.sublayers?.removeAll(where: { $0 is CAGradientLayer })
+        checkmarkImage.isHidden = true
+    }
+    
     private lazy var checkmarkImage: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "checkmark")

@@ -20,7 +20,7 @@ final class ViewManager {
         ["#E74C3CFF", "#93261BFF"],
     ]
     
-    let images: [UIImage] = [.icon1, .icon2, .icon3, .icon4, .icon5, .icon6]
+    let images: [String] = ["icon1", "icon2", "icon3", "icon4", "icon5", "icon6"]
     
     func createGradient(frame: CGRect = CGRect(origin: .zero, size: CGSize(width: 306, height: 175)), colors: [String]) -> CAGradientLayer {
         let gradient = CAGradientLayer()
@@ -34,7 +34,7 @@ final class ViewManager {
         return gradient
     }
     
-    func getCard(colors: [String], balance: Float, cardNumber: Int, cardImage: UIImage) -> UIView {
+    func getCard(colors: [String], balance: Float, cardNumber: Int, cardImage: String) -> UIView {
         
         let card: UIView = {
             let view = UIView()
@@ -48,7 +48,7 @@ final class ViewManager {
         
         let imageView: UIImageView = {
             let imageView = UIImageView()
-            imageView.image = cardImage
+            imageView.image = UIImage(named: cardImage) ?? .icon1
             imageView.contentMode = .scaleAspectFill
             imageView.clipsToBounds = true
             imageView.layer.opacity = 0.32
