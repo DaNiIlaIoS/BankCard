@@ -23,7 +23,11 @@ final class ViewBuilder: NSObject {
     
     var cardColor: [String] = ["#16A085FF", "#003F32FF"] {
         willSet {
-            //
+            if let colorView = view.viewWithTag(1) {
+                colorView.layer.sublayers?.remove(at: 0)
+                let gradien = manager.createGradient(colors: newValue)
+                colorView.layer.insertSublayer(gradien, at: 0)
+            }
         }
     }
     
@@ -70,21 +74,62 @@ final class ViewBuilder: NSObject {
     }
     
     func createColorCollection() {
-        colorCollection = manager.getCollection(id: "colors", dataSource: self, delegate: self)
+        let title = CollectionLabel(title: "Select color")
+        
+        colorCollection = manager.getCollection(id: .colors, dataSource: self, delegate: self)
         colorCollection.register(ColorCollectionViewCell.self, forCellWithReuseIdentifier: ColorCollectionViewCell.reuseId)
+        
+        view.addSubview(title)
+        view.addSubview(colorCollection)
+        
+        NSLayoutConstraint.activate([
+            title.topAnchor.constraint(equalTo: card.bottomAnchor, constant: 40),
+            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            title.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            
+            colorCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
+            colorCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            colorCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
     }
 }
 
 extension ViewBuilder: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        0
+        switch collectionView.restorationIdentifier {
+        case CollectionId.colors.rawValue: return manager.colors.count
+        case CollectionId.images.rawValue: return manager.images.count
+        default: return 0
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        UICollectionViewCell()
+        switch collectionView.restorationIdentifier {
+        case CollectionId.colors.rawValue:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCollectionViewCell.reuseId, for: indexPath) as? ColorCollectionViewCell else { return UICollectionViewCell() }
+            let colors = manager.colors[indexPath.item]
+            cell.setColor(colors)
+            return cell
+        default:
+            return UICollectionViewCell()
+        }
     }
 }
 
 extension ViewBuilder: UICollectionViewDelegate {
-    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        switch collectionView.restorationIdentifier {
+        case CollectionId.colors.rawValue:
+            let colors = manager.colors[indexPath.item]
+            self.cardColor = colors
+//        case CollectionId.images.rawValue: return manager.images.count
+        default:
+            return
+        }
+
+    }
+}
+
+enum CollectionId: String {
+    case colors, images
 }

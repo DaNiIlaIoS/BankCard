@@ -17,4 +17,11 @@ final class ColorCollectionViewCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    func setColor(_ colors: [String]) {
+        let gradient = ViewManager.shared.createGradient(frame: CGRect(origin: .zero, size: CGSize(width: 62, height: 62)), colors: colors)
+        layer.addSublayer(gradient)
+        layer.cornerRadius = 12
+        clipsToBounds = true
+    }
 }

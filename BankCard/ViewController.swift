@@ -24,5 +24,6 @@ class ViewController: UIViewController {
         
         builder.createTitle(title: "Design your virtual card")
         builder.createCard()
+        builder.createColorCollection()
     }
 }

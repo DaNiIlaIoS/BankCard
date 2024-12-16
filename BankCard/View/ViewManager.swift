@@ -38,10 +38,11 @@ final class ViewManager {
         
         let card: UIView = {
             let view = UIView()
-            view.layer.addSublayer(createGradient(colors: colors))
+            view.layer.insertSublayer(createGradient(colors: colors), at: 0)
             view.layer.cornerRadius = 30
             view.clipsToBounds = true
             view.translatesAutoresizingMaskIntoConstraints = false
+            view.tag = 1
             return view
         }()
         
@@ -103,23 +104,24 @@ final class ViewManager {
         return card
     }
     
-        func getCollection(id: String, dataSource: UICollectionViewDataSource, delegate: UICollectionViewDelegate) -> UICollectionView {
+    func getCollection(id: CollectionId, dataSource: UICollectionViewDataSource, delegate: UICollectionViewDelegate) -> UICollectionView {
             
             let collection: UICollectionView = {
                 let layout = UICollectionViewFlowLayout()
                 layout.scrollDirection = .horizontal
-                layout.minimumLineSpacing = 0
+                layout.minimumLineSpacing = 15
                 layout.minimumInteritemSpacing = 0
                 layout.itemSize = CGSize(width: 62, height: 62)
                 layout.sectionInset = UIEdgeInsets(top: 0, left: 30, bottom: 0, right: 30)
                 
                 let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-                collectionView.restorationIdentifier = id
+                collectionView.backgroundColor = .clear
+                collectionView.showsHorizontalScrollIndicator = false
+                collectionView.restorationIdentifier = id.rawValue
                 collectionView.dataSource = dataSource
                 collectionView.delegate = delegate
-                
                 collectionView.translatesAutoresizingMaskIntoConstraints = false
-                collectionView.heightAnchor.constraint(equalToConstant: 70).isActive = true
+                collectionView.heightAnchor.constraint(equalToConstant: 62).isActive = true
                 
                 return collectionView
             }()
