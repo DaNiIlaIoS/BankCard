@@ -26,5 +26,6 @@ class ViewController: UIViewController {
         builder.createCard()
         builder.createColorCollection()
         builder.createImageCollection()
+        builder.createDescriptionLabel()
     }
 }

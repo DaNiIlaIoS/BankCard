@@ -1,5 +1,5 @@
 //
-//  IconCollectionViewCell.swift
+//  ImageCollectionViewCell.swift
 //  BankCard
 //
 //  Created by Даниил Сивожелезов on 16.12.2024.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class IconCollectionViewCell: UICollectionViewCell {
+final class ImageCollectionViewCell: UICollectionViewCell {
     static let reuseId = "IconCollectionViewCell"
     
     private lazy var imageView: UIImageView = {
@@ -17,8 +17,19 @@ final class IconCollectionViewCell: UICollectionViewCell {
         return imageView
     }()
     
+    private lazy var checkmarkImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "checkmark")
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = .white
+        imageView.isHidden = true
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
         setupCell()
     }
     
@@ -28,6 +39,7 @@ final class IconCollectionViewCell: UICollectionViewCell {
     
     private func setupCell() {
         addSubview(imageView)
+        addSubview(checkmarkImage)
         backgroundColor = UIColor(hex: "#1F1F1FFF")
         layer.cornerRadius = 12
         clipsToBounds = true
@@ -41,10 +53,23 @@ final class IconCollectionViewCell: UICollectionViewCell {
             imageView.heightAnchor.constraint(equalToConstant: 44),
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -10),
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 10),
+            
+            checkmarkImage.widthAnchor.constraint(equalToConstant: 24),
+            checkmarkImage.heightAnchor.constraint(equalToConstant: 24),
+            checkmarkImage.centerXAnchor.constraint(equalTo: centerXAnchor),
+            checkmarkImage.centerYAnchor.constraint(equalTo: centerYAnchor),
         ])
     }
     
     func setImage(_ image: UIImage) {
         imageView.image = image
+    }
+    
+    func selectImage() {
+        checkmarkImage.isHidden = false
+    }
+    
+    func deselectImage() {
+        checkmarkImage.isHidden = true
     }
 }

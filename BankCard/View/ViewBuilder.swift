@@ -99,7 +99,7 @@ final class ViewBuilder: NSObject {
         let title = CollectionLabel(title: "Add shapes")
         
         imageCollection = manager.getCollection(id: .images, dataSource: self, delegate: self)
-        imageCollection.register(IconCollectionViewCell.self, forCellWithReuseIdentifier: IconCollectionViewCell.reuseId)
+        imageCollection.register(ImageCollectionViewCell.self, forCellWithReuseIdentifier: ImageCollectionViewCell.reuseId)
         
         view.addSubview(title)
         view.addSubview(imageCollection)
@@ -112,6 +112,27 @@ final class ViewBuilder: NSObject {
             imageCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
             imageCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             imageCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+    
+    func createDescriptionLabel() {
+        let descriptionLabel: UILabel = {
+            let label = UILabel()
+            label.text = "Don't worry. You can always change the design of your virtual card later. Just enter the settings."
+            label.font = .interFont(type: .semiBold, size: 14)
+            label.setLineHeight(lineHeight: 10)
+            label.textColor = UIColor(hex: "#6F6F6FFF")
+            label.numberOfLines = 0
+            label.translatesAutoresizingMaskIntoConstraints = false
+            return label
+        }()
+        
+        view.addSubview(descriptionLabel)
+        
+        NSLayoutConstraint.activate([
+            descriptionLabel.topAnchor.constraint(equalTo: imageCollection.bottomAnchor, constant: 40),
+            descriptionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            descriptionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30)
         ])
     }
 }
@@ -133,7 +154,7 @@ extension ViewBuilder: UICollectionViewDataSource {
             cell.setColor(colors)
             return cell
         case CollectionId.images.rawValue:
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: IconCollectionViewCell.reuseId, for: indexPath) as? IconCollectionViewCell else { return UICollectionViewCell() }
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageCollectionViewCell.reuseId, for: indexPath) as? ImageCollectionViewCell else { return UICollectionViewCell() }
             let image = manager.images[indexPath.item]
             cell.setImage(image)
             return cell
@@ -149,13 +170,35 @@ extension ViewBuilder: UICollectionViewDelegate {
         case CollectionId.colors.rawValue:
             let colors = manager.colors[indexPath.item]
             self.cardColor = colors
+            
+            let cell = collectionView.cellForItem(at: indexPath) as? ColorCollectionViewCell
+            cell?.selectImage()
+            
         case CollectionId.images.rawValue:
             let image = manager.images[indexPath.item]
             self.cardImage = image
+            
+            let cell = collectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell
+            cell?.selectImage()
+            
         default:
             return
         }
-
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
+        switch collectionView.restorationIdentifier {
+        case CollectionId.colors.rawValue:
+            let cell = collectionView.cellForItem(at: indexPath) as? ColorCollectionViewCell
+            cell?.deselectImage()
+            
+        case CollectionId.images.rawValue:
+            let cell = collectionView.cellForItem(at: indexPath) as? ImageCollectionViewCell
+            cell?.deselectImage()
+            
+        default:
+            return
+        }
     }
 }
 
