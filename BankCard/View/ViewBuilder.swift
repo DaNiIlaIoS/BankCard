@@ -33,7 +33,9 @@ final class ViewBuilder: NSObject {
     
     var cardImage: UIImage = .icon1 {
         willSet {
-            //
+            if let imageView = view.viewWithTag(2) as? UIImageView {
+                imageView.image = newValue
+            }
         }
     }
     
@@ -83,13 +85,33 @@ final class ViewBuilder: NSObject {
         view.addSubview(colorCollection)
         
         NSLayoutConstraint.activate([
-            title.topAnchor.constraint(equalTo: card.bottomAnchor, constant: 40),
+            title.topAnchor.constraint(equalTo: card.bottomAnchor, constant: 60),
             title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
             title.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
             
             colorCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
             colorCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             colorCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+        ])
+    }
+    
+    func createImageCollection() {
+        let title = CollectionLabel(title: "Add shapes")
+        
+        imageCollection = manager.getCollection(id: .images, dataSource: self, delegate: self)
+        imageCollection.register(IconCollectionViewCell.self, forCellWithReuseIdentifier: IconCollectionViewCell.reuseId)
+        
+        view.addSubview(title)
+        view.addSubview(imageCollection)
+        
+        NSLayoutConstraint.activate([
+            title.topAnchor.constraint(equalTo: colorCollection.bottomAnchor, constant: 50),
+            title.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            title.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            
+            imageCollection.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 20),
+            imageCollection.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            imageCollection.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
     }
 }
@@ -110,6 +132,11 @@ extension ViewBuilder: UICollectionViewDataSource {
             let colors = manager.colors[indexPath.item]
             cell.setColor(colors)
             return cell
+        case CollectionId.images.rawValue:
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: IconCollectionViewCell.reuseId, for: indexPath) as? IconCollectionViewCell else { return UICollectionViewCell() }
+            let image = manager.images[indexPath.item]
+            cell.setImage(image)
+            return cell
         default:
             return UICollectionViewCell()
         }
@@ -122,7 +149,9 @@ extension ViewBuilder: UICollectionViewDelegate {
         case CollectionId.colors.rawValue:
             let colors = manager.colors[indexPath.item]
             self.cardColor = colors
-//        case CollectionId.images.rawValue: return manager.images.count
+        case CollectionId.images.rawValue:
+            let image = manager.images[indexPath.item]
+            self.cardImage = image
         default:
             return
         }

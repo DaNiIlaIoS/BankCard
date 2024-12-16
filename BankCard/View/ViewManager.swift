@@ -53,6 +53,7 @@ final class ViewManager {
             imageView.clipsToBounds = true
             imageView.layer.opacity = 0.32
             imageView.translatesAutoresizingMaskIntoConstraints = false
+            imageView.tag = 2
             return imageView
         }()
         
